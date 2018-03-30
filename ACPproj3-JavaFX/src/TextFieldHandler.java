@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -9,6 +10,8 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 /**
  * A class to handle Action Events related to the text area. Opens a file and
@@ -24,14 +27,6 @@ import javafx.scene.control.TextArea;
  */
 public class TextFieldHandler implements EventHandler<ActionEvent> {
 	/**
-	 * Constant for the beginning of a range of characters to delete
-	 */
-	private static final int FIRST_CHAR = 2;
-	/**
-	 * Constant for the end of a range of characters to delete
-	 */
-	private static final int SECOND_CHAR = 4;
-	/**
 	 * The Dictionary object to check a dictionary of words
 	 */
 	private Dictionary dictionary;
@@ -40,14 +35,6 @@ public class TextFieldHandler implements EventHandler<ActionEvent> {
 	 */
 	private TextArea textArea;
 	/**
-	 * The StringBuilder object to insert and delete characters for spell check
-	 */
-	private StringBuilder strBuilder;
-	/**
-	 * The new word to be tested for a match to the dictionary
-	 */
-	private String newWord;
-	/**
 	 * The Scanner object for reading a text file
 	 */
 	private Scanner fileIn;
@@ -55,6 +42,10 @@ public class TextFieldHandler implements EventHandler<ActionEvent> {
 	 * The PrintWriter object for writing to a text file
 	 */
 	private PrintWriter fileOut;
+	/**
+	 * The primary stage to produce a dialogue on for opening and saving a text file
+	 */
+	private Stage stage;
 
 	/**
 	 * Constructs a TextFieldHandler object that takes in the text area and dictionary objects
@@ -62,12 +53,12 @@ public class TextFieldHandler implements EventHandler<ActionEvent> {
 	 * @param textArea the TextArea object needed to get and append text
 	 * @param dictionary the dictionary object to check a dictionary of words
 	 */
-	public TextFieldHandler(TextArea textArea, Dictionary dictionary) {
+	public TextFieldHandler(TextArea textArea, Dictionary dictionary, Stage stage) {
 		this.textArea = textArea;
 		this.dictionary = dictionary;
-		this.newWord = "";
 		this.fileIn = null;
 		this.fileOut = null;
+		this.stage = stage;
 	}
 
 	/*
@@ -75,19 +66,32 @@ public class TextFieldHandler implements EventHandler<ActionEvent> {
 	 *
 	 * @see javafx.event.EventHandler#handle(javafx.event.Event) Tests whether
 	 * menu items "Open", "Spell Check", or "Save" was chosen and calls methods
-	 * related to each
+	 * related to each.  Added a FileChooser per instruction.
 	 */
 	@Override
 	public void handle(ActionEvent event) {
 		MenuItem mItem = (MenuItem) event.getSource();
 		String item = mItem.getText();
+		FileChooser fileChooser = new FileChooser();
 		if (item.equalsIgnoreCase("Open")) {
-			applyFileText();
+			fileChooser.setTitle("Open Text File");
+		    fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("All text files", "*.txt"));
+			File file = fileChooser.showOpenDialog(stage);
+            if (file != null) {
+                openReader(file);
+                applyFileText();
+            }
 		} else if (item.equalsIgnoreCase("Spell Check")) {
 			GenerateSuggestions start = new GenerateSuggestions();
 			start.spellCheck();
 		} else if (item.equalsIgnoreCase("Save")) {
-			saveToFile();
+            fileChooser.setTitle("Save Text File");
+            fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("All text files", "*.txt"));
+            File file = fileChooser.showSaveDialog(stage);
+            if (file != null){
+            	openWriter(file);
+            	saveToFile();
+            }
 		}
 
 	}
@@ -101,6 +105,22 @@ public class TextFieldHandler implements EventHandler<ActionEvent> {
 	 *          COP4027 Project#: 3 File Name: GenerateSuggestions.java
 	 */
 	private class GenerateSuggestions {
+		/**
+		 * Constant for the beginning of a range of characters to delete
+		 */
+		private static final int FIRST_CHAR = 2;
+		/**
+		 * Constant for the end of a range of characters to delete
+		 */
+		private static final int SECOND_CHAR = 4;
+		/**
+		 * The StringBuilder object to insert and delete characters for spell check
+		 */
+		private StringBuilder strBuilder;
+		/**
+		 * The new word to be tested for a match to the dictionary
+		 */
+		private String newWord;
 		/**
 		 * The ArrayList of suggested words in the dictionary
 		 */
@@ -246,7 +266,6 @@ public class TextFieldHandler implements EventHandler<ActionEvent> {
 	 * Applies the text within an input file to the text area
 	 */
 	private void applyFileText() {
-		openReader();
 		while (fileIn.hasNext()) {
 			textArea.appendText(fileIn.next() + " ");
 		}
@@ -257,7 +276,6 @@ public class TextFieldHandler implements EventHandler<ActionEvent> {
 	 * Saves the text area to file
 	 */
 	private void saveToFile() {
-		openWriter();
 		fileOut.write(textArea.getText());
 		fileOut.flush();
 	}
@@ -265,14 +283,12 @@ public class TextFieldHandler implements EventHandler<ActionEvent> {
 	/**
 	 * Opens the input file
 	 */
-	private void openReader() {
+	private void openReader(File file) {
 		try {
 			if (fileOut != null) {
 				fileOut.close();
-			} else if (fileIn != null) {
-				fileIn.close();
 			}
-			fileIn = new Scanner(new FileInputStream("ExampleFile.txt"));
+			fileIn = new Scanner(new FileInputStream(file));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -281,14 +297,12 @@ public class TextFieldHandler implements EventHandler<ActionEvent> {
 	/**
 	 * Opens the output file
 	 */
-	private void openWriter() {
+	private void openWriter(File file) {
 		try {
 			if (fileIn != null) {
 				fileIn.close();
-			} else if (fileOut != null) {
-				fileOut.close();
 			}
-			fileOut = new PrintWriter(new FileOutputStream("ExampleFile.txt"));
+			fileOut = new PrintWriter(new FileOutputStream(file));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}

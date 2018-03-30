@@ -3,13 +3,13 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 
 /**
- * Class to handle the Action Event of the "Exit" menu item
+ * Class to handle the Action Event of the "Exit" button
  *
  * @author Randy Quimby
  * @version 1.0
  *
- * COP4027 Project#: 3
- * File Name: ExitMenuHandler.java
+ * COP4027 Project#: 4
+ * File Name: ExitButtonHandler.java
  */
 public class ExitMenuHandler implements EventHandler<ActionEvent> {
 

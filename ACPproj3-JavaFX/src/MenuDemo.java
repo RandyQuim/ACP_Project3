@@ -48,7 +48,7 @@ public class MenuDemo extends Application {
 
 	    TextArea textArea = new TextArea();
 	    textArea.setWrapText(true);
-	    TextFieldHandler action = new TextFieldHandler(textArea, dictionary);
+	    TextFieldHandler action = new TextFieldHandler(textArea, dictionary, stage);
 	    ExitMenuHandler exitAction = new ExitMenuHandler();
 
 	    openFile.setOnAction(action);
